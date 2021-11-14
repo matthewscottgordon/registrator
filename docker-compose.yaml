@@ -5,8 +5,8 @@ services:
     ports:
       - "8000:8000"
   database:
-    build: db
+    image: postgres:bullseye
     restart: always
     environment:
       - POSTGRES_USER=registrator
-      - PORTGRES_PASSWORD=registrator
+      - POSTGRES_PASSWORD=registrator
