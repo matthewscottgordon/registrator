@@ -1,5 +1,5 @@
 [global.databases]
 postgres_db = { url = "postgres://registrator:registrator@database/registrator" }
 
-[production]
+[release]
 address = "0.0.0.0"
