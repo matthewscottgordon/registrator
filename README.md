@@ -1,1 +1,1 @@
-# grocery-list
+# Event Registration App
