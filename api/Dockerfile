@@ -1,10 +1,11 @@
 FROM rust:1.56-bullseye as builder
-WORKDIR /usr/src/grocery-list-api
-COPY . .
+WORKDIR /usr/src/registrator
+COPY Cargo.toml .
+COPY src ./src
 RUN cargo install --path .
 
 
 FROM debian:bullseye
-COPY --from=builder /usr/local/cargo/bin/grocery-list-api /usr/local/bin/grocery-list-api
-ENV ROCKET_ADDRESS=0.0.0.0
-CMD ["grocery-list-api"]
+COPY --from=builder /usr/local/cargo/bin/registrator /usr/local/bin/registrator
+COPY Rocket.toml .
+CMD ["registrator"]

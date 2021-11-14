@@ -1,4 +1,7 @@
 #[macro_use] extern crate rocket;
+#[macro_use] extern crate rocket_sync_db_pools;
+
+mod db;
 
 #[get("/")]
 fn index() -> &'static str {
@@ -7,5 +10,7 @@ fn index() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index])
+    rocket::build()
+        .attach(db::stage())
+        .mount("/", routes![index])
 }
