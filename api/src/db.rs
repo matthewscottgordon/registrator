@@ -1,6 +1,5 @@
 use postgres::error::Error;
 use rocket::fairing::AdHoc;
-use rocket::serde::json::Json;
 use rocket::{Build, Rocket};
 use rocket_sync_db_pools::postgres;
 
@@ -10,7 +9,7 @@ use super::Event;
 pub struct Db(postgres::Client);
 
 impl Db {
-    pub async fn add_event<'a>(self, event: Json<Event>) -> Result<u64, Error> {
+    pub async fn add_event<'a>(self, event: Event) -> Result<u64, Error> {
         self.run(move |conn| {
             conn.execute(
                 "INSERT INTO events (name, time) VALUES ($1, $2);",
