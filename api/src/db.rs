@@ -1,5 +1,6 @@
 use postgres::error::Error;
 use rocket::fairing::AdHoc;
+use rocket::serde::{Deserialize, Serialize};
 use rocket::{Build, Rocket};
 use rocket_sync_db_pools::postgres;
 
@@ -7,6 +8,13 @@ use super::Event;
 
 #[database("postgres_db")]
 pub struct Db(postgres::Client);
+
+#[derive(Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct ObjectWithId<T> {
+    id: i32,
+    object: T,
+}
 
 impl Db {
     pub async fn add_event<'a>(self, event: Event) -> Result<u64, Error> {
@@ -19,14 +27,17 @@ impl Db {
         .await
     }
 
-    pub async fn list_events<'a>(self) -> Result<Vec<Event>, Error> {
+    pub async fn list_events<'a>(self) -> Result<Vec<ObjectWithId<Event>>, Error> {
         self.run(move |conn| {
             Ok(conn
-                .query("SELECT name, time FROM events", &[])?
+                .query("SELECT id, name, time FROM events", &[])?
                 .iter()
-                .map(|row| Event {
-                    name: row.get(0),
-                    datetime: row.get(1),
+                .map(|row| ObjectWithId {
+                    id: row.get(0),
+                    object: Event {
+                        name: row.get(1),
+                        datetime: row.get(2),
+                    },
                 })
                 .collect())
         })

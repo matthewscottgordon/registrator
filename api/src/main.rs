@@ -10,6 +10,7 @@ use std::fmt::Display;
 use std::str::FromStr;
 
 mod db;
+use db::ObjectWithId;
 
 fn deserialize_from_str<'de, S, D>(deserializer: D) -> Result<S, D::Error>
 where
@@ -49,7 +50,9 @@ async fn add_event(
 }
 
 #[get("/events")]
-async fn list_events(db: db::Db) -> Result<Json<Vec<Event>>, Debug<postgres::error::Error>> {
+async fn list_events(
+    db: db::Db,
+) -> Result<Json<Vec<ObjectWithId<Event>>>, Debug<postgres::error::Error>> {
     Ok(Json(db.list_events().await?))
 }
 
