@@ -56,9 +56,17 @@ async fn list_events(
     Ok(Json(db.list_events().await?))
 }
 
+#[get("/events/<id>")]
+async fn get_event(
+    db: db::Db,
+    id: i32,
+) -> Result<Option<Json<Event>>, Debug<postgres::error::Error>> {
+    Ok(db.get_event(id).await?.map(|event| Json(event)))
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .attach(db::stage())
-        .mount("/", routes![add_event, list_events])
+        .mount("/", routes![add_event, get_event, list_events])
 }
