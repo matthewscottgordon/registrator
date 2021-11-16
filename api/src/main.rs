@@ -61,7 +61,7 @@ async fn get_event(
     db: db::Db,
     id: i32,
 ) -> Result<Option<Json<Event>>, Debug<postgres::error::Error>> {
-    Ok(db.get_event(id).await?.map(|event| Json(event)))
+    Ok(db.get_event(id).await?.map(Json))
 }
 
 #[launch]
