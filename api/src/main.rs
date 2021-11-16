@@ -44,7 +44,7 @@ pub struct Event {
 async fn add_event(
     db: db::Db,
     event: Json<Event>,
-) -> Result<Json<u64>, Debug<postgres::error::Error>> {
+) -> Result<Json<i32>, Debug<postgres::error::Error>> {
     let count = db.add_event(event.into_inner()).await?;
     Ok(Json(count))
 }

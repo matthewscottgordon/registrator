@@ -17,12 +17,16 @@ pub struct ObjectWithId<T> {
 }
 
 impl Db {
-    pub async fn add_event(self, event: Event) -> Result<u64, Error> {
+    pub async fn add_event(self, event: Event) -> Result<i32, Error> {
         self.run(move |conn| {
-            conn.execute(
-                "INSERT INTO events (name, time) VALUES ($1, $2);",
+            Ok(conn.query(
+                "INSERT
+                     INTO events (name, time)
+                     VALUES ($1, $2)
+                     RETURNING id;",
                 &[&event.name, &event.datetime],
-            )
+            )?[0]
+                .get(0))
         })
         .await
     }
@@ -30,7 +34,7 @@ impl Db {
     pub async fn list_events(self) -> Result<Vec<ObjectWithId<Event>>, Error> {
         self.run(move |conn| {
             Ok(conn
-                .query("SELECT id, name, time FROM events", &[])?
+                .query("SELECT id, name, time FROM events;", &[])?
                 .iter()
                 .map(|row| ObjectWithId {
                     id: row.get(0),
@@ -46,7 +50,7 @@ impl Db {
 
     pub async fn get_event(self, id: i32) -> Result<Option<Event>, Error> {
         self.run(move |conn| {
-            let rows = conn.query("SELECT name, time FROM events WHERE id = $1", &[&id])?;
+            let rows = conn.query("SELECT name, time FROM events WHERE id = $1;", &[&id])?;
             Ok(if rows.is_empty() {
                 None
             } else {
