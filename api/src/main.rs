@@ -5,7 +5,7 @@ extern crate rocket_sync_db_pools;
 
 use chrono::{DateTime, Utc};
 use rocket::response::Debug;
-use rocket::serde::{de, json::Json, Deserialize, Deserializer};
+use rocket::serde::{de, json::Json, Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -13,24 +13,29 @@ mod db;
 
 fn deserialize_from_str<'de, S, D>(deserializer: D) -> Result<S, D::Error>
 where
-    S: FromStr,      // Required for S::from_str...
-    S::Err: Display, // Required for .map_err(de::Error::custom)
+    S: FromStr,
+    S::Err: Display,
     D: Deserializer<'de>,
 {
     let s: String = Deserialize::deserialize(deserializer)?;
     S::from_str(&s).map_err(de::Error::custom)
 }
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
+fn serialize_to_str<S>(datetime: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_str(&datetime.to_rfc3339())
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct Event {
     name: String,
-    #[serde(deserialize_with = "deserialize_from_str")]
+    #[serde(
+        deserialize_with = "deserialize_from_str",
+        serialize_with = "serialize_to_str"
+    )]
     datetime: DateTime<Utc>,
 }
 
@@ -43,9 +48,14 @@ async fn add_event(
     Ok(Json(count))
 }
 
+#[get("/events")]
+async fn list_events(db: db::Db) -> Result<Json<Vec<Event>>, Debug<postgres::error::Error>> {
+    Ok(Json(db.list_events().await?))
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .attach(db::stage())
-        .mount("/", routes![index, add_event])
+        .mount("/", routes![add_event, list_events])
 }

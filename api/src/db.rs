@@ -18,6 +18,20 @@ impl Db {
         })
         .await
     }
+
+    pub async fn list_events<'a>(self) -> Result<Vec<Event>, Error> {
+        self.run(move |conn| {
+            Ok(conn
+                .query("SELECT name, time FROM events", &[])?
+                .iter()
+                .map(|row| Event {
+                    name: row.get(0),
+                    datetime: row.get(1),
+                })
+                .collect())
+        })
+        .await
+    }
 }
 
 async fn init_db(rocket: Rocket<Build>) -> Rocket<Build> {
